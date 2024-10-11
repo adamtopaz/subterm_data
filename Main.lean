@@ -37,19 +37,20 @@ where go dataDir nm cinfo := do
       ("pp", toString <| ← Meta.ppExpr e),
       ("nm", toString nm),
       ("mod", toJson <| mod),
-      ("cs", toJson e.getUsedConstants)
+      ("cs", toJson e.getUsedConstants),
     ]
     handle.putStrLn j.compress
   if let some val := cinfo.value? then Meta.forEachExpr val fun e => do
     let j : Json := .mkObj [
-      ("val", false),
+      ("val", true),
       ("pp", toString <| ← Meta.ppExpr val),
       ("nm", toString nm),
       ("mod", toJson <| mod),
       ("cs", toJson e.getUsedConstants)
     ]
     handle.putStrLn j.compress
-  handle.putStrLn "finished"
+  let handle ← IO.FS.Handle.mk (dataDir / s!"{mod}" / s!"{hash nm}.done") .write
+  handle.putStrLn s!"{nm}"
   return .ok ()
 
 def subtermCommand := `[Cli|
