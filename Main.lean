@@ -33,7 +33,7 @@ where go handle nm cinfo := do
   Meta.forEachExpr cinfo.type fun e => do
     let j : Json := .mkObj [
       ("val", false),
-      ("pp", toString <| ← Meta.ppExpr e),
+      --("pp", toString <| ← Meta.ppExpr e),
       ("nm", toString nm),
       ("mod", toJson <| mod),
       ("cs", toJson e.getUsedConstants),
@@ -42,7 +42,7 @@ where go handle nm cinfo := do
   if let some val := cinfo.value? then Meta.forEachExpr val fun e => do
     let j : Json := .mkObj [
       ("val", true),
-      ("pp", toString <| ← Meta.ppExpr val),
+      --("pp", toString <| ← Meta.ppExpr val),
       ("nm", toString nm),
       ("mod", toJson <| mod),
       ("cs", toJson e.getUsedConstants)
