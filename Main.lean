@@ -10,9 +10,10 @@ open Lean Cli
 def runSubtermCommand (p : Parsed) : IO UInt32 := do
   searchPathRef.set compile_time_search_path%
   let options : Options := maxHeartbeats.set {} 0
-  let dataDir := p.positionalArg! "datadir" |>.as! String
+  let fpath := p.positionalArg! "fpath" |>.as! String
   let cores := p.positionalArg! "cores" |>.as! Nat
-  let dataDir : System.FilePath := dataDir
+  let fpath : System.FilePath := fpath
+  let handle ← IO.FS.Handle.mk fpath .write
   CoreM.withImportModules (options := options) #[`Mathlib] do
     let env ← getEnv
     let mut ds := #[]
@@ -22,15 +23,13 @@ def runSubtermCommand (p : Parsed) : IO UInt32 := do
     let state ← get
     let ctx ← read
     let res ← ds.runInParallel cores fun _idx (n,c) => 
-      Prod.fst <$> Core.CoreM.toIO (s := state) (ctx := ctx) (Meta.MetaM.run' <| go dataDir n c)
+      Prod.fst <$> Core.CoreM.toIO (s := state) (ctx := ctx) (Meta.MetaM.run' <| go handle n c)
     match res with 
     | .ok () => return 0
     | .error e => show IO _ from throw e
-where go dataDir nm cinfo := do
+where go handle nm cinfo := do
   let some mod := (← getEnv).getModuleFor? nm | return .ok ()
   println! s!"{nm} :: {mod}"
-  IO.FS.createDirAll <| dataDir / s!"{mod}"
-  let handle ← IO.FS.Handle.mk (dataDir / s!"{mod}" / s!"{hash nm}") .write
   Meta.forEachExpr cinfo.type fun e => do
     let j : Json := .mkObj [
       ("val", false),
@@ -49,8 +48,6 @@ where go dataDir nm cinfo := do
       ("cs", toJson e.getUsedConstants)
     ]
     handle.putStrLn j.compress
-  let handle ← IO.FS.Handle.mk (dataDir / s!"{mod}" / s!"{hash nm}.done") .write
-  handle.putStrLn s!"{nm}"
   return .ok ()
 
 def subtermCommand := `[Cli|
@@ -58,7 +55,7 @@ def subtermCommand := `[Cli|
   FLAGS:
   ARGS:
     cores : Nat ; "Number of cores to use"
-    datadir : String ; "Datadir"
+    fpath : String ; "Path"
 ]
 
 def main (args : List String) : IO UInt32 := do
