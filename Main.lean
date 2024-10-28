@@ -51,7 +51,7 @@ where go handle nm cinfo := do
   return .ok ()
 
 def subtermCommand := `[Cli|
-  constant_prep_data VIA runSubtermCommand ; "Generate subterm data"
+  subterm_data VIA runSubtermCommand ; "Generate subterm data"
   FLAGS:
   ARGS:
     cores : Nat ; "Number of cores to use"
