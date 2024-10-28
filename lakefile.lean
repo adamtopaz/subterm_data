@@ -4,11 +4,6 @@ open Lake DSL
 package «subterm_data» where
   -- add package configuration options here
 
-lean_lib «SubtermData» where
-  -- add library configuration options here
-
---require common from ".."/"common" 
-
 require mathlib from git
   "https://github.com/leanprover-community/mathlib4.git"
 
